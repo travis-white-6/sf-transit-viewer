@@ -1,0 +1,173 @@
+main {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+header {
+  padding: 1.5rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Status states */
+.status-message {
+  padding: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-message.error p {
+  color: #e57373;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.accuracy-note {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Board header */
+.board-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.refresh-btn {
+  margin-left: auto;
+}
+
+.refreshing {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Stops grid */
+.stops-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Stop card */
+.stop-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stop-card.agency-sf {
+  border-left-color: var(--muni-accent);
+}
+
+.stop-card.agency-ba {
+  border-left-color: var(--bart-accent);
+}
+
+.stop-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+
+.stop-agency {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stop-name {
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.stop-distance {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Arrivals */
+.arrivals {
+  padding: 0.25rem 0;
+}
+
+.arrival-row {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.arrival-row:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.arrival-line {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.arrival-destination {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arrival-time {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.arrival-time.live {
+  color: var(--live-color);
+}
+
+.arrival-time.scheduled {
+  color: var(--sched-color);
+}
+
+.sched-marker {
+  font-size: 0.65rem;
+  font-weight: 400;
+}
+
+.no-arrivals {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
