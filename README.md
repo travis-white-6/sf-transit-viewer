@@ -25,10 +25,10 @@ cp .env.example .env
 
 **4. Start the dev server**
 ```bash
-npx netlify dev
+npm run dev
 ```
 
-Opens at http://localhost:8888. Runs both the Vite frontend and the Netlify Functions proxy together.
+Opens at http://localhost:5173. Runs the Vite frontend and a local function server concurrently — no netlify-cli required.
 
 ---
 

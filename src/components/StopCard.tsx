@@ -13,7 +13,7 @@ function ArrivalRow({ arrival }: { arrival: Arrival }) {
   return (
     <div className="arrival-row">
       <span className="arrival-line">{arrival.line}</span>
-      <span className="arrival-destination">{arrival.destination}</span>
+      <span className="arrival-destination">To: {arrival.destination}</span>
       <span className={`arrival-time ${arrival.isLive ? "live" : "scheduled"}`}>
         {label}
         {!arrival.isLive && <span className="sched-marker"> sched</span>}
@@ -30,9 +30,11 @@ export function StopCard({ stop }: StopCardProps) {
   const upcomingArrivals = stop.arrivals
     .filter((a) => {
       const t = a.expectedTime ?? a.aimedTime;
-      return minutesFromNow(t) >= -1;
+      if (!t) return false;
+      const mins = minutesFromNow(t);
+      return !isNaN(mins) && mins >= -1;
     })
-    .slice(0, 5);
+    .slice(0, 2);
 
   const distLabel =
     stop.distanceMeters !== undefined

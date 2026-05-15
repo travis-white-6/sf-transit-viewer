@@ -37,7 +37,8 @@ async function fetchStops(apiKey: string, operator: string) {
       const stop = p as Record<string, unknown>;
       const loc = stop.Location as Record<string, unknown> | undefined;
       return {
-        id: String(stop.id ?? ""),
+        // Strip agency prefix ("SF:15184" → "15184") — StopMonitoring needs bare stop code
+        id: String(stop.id ?? "").replace(/^[A-Za-z]+:/, ""),
         name: String(stop.Name ?? ""),
         lat: parseFloat(String(loc?.Latitude ?? "0")),
         lng: parseFloat(String(loc?.Longitude ?? "0")),
@@ -75,14 +76,27 @@ export const handler: Handler = async (event) => {
       fetchStops(apiKey, "BA"),
     ]);
 
-    const nearby = [...muniStops, ...bartStops]
+    const allWithDistance = [...muniStops, ...bartStops]
       .map((s) => ({
         ...s,
         distanceMeters: haversineMeters(userLat, userLng, s.lat, s.lng),
       }))
-      .filter((s) => s.distanceMeters <= radiusM)
-      .sort((a, b) => a.distanceMeters - b.distanceMeters)
-      .slice(0, 12);
+      .sort((a, b) => a.distanceMeters - b.distanceMeters);
+
+    // DEBUG: show raw sorted position of stops in the 330–400m band
+    console.log("[stops] 330-400m band:", allWithDistance.filter(s => s.distanceMeters >= 330 && s.distanceMeters <= 400).map(s => `${s.id} ${s.name} ${Math.round(s.distanceMeters)}m`));
+
+    // Walk stops closest-first; allow at most 2 per 100m proximity cluster so a
+    // single dense intersection can't consume all candidate slots.
+    const nearby: typeof allWithDistance = [];
+    for (const stop of allWithDistance) {
+      if (stop.distanceMeters > radiusM) break;
+      const nearbyCount = nearby.filter(
+        (r) => haversineMeters(r.lat, r.lng, stop.lat, stop.lng) < 100
+      ).length;
+      if (nearbyCount < 2) nearby.push(stop);
+      if (nearby.length >= 15) break;
+    }
 
     return {
       statusCode: 200,
