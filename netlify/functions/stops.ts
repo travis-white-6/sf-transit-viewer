@@ -83,20 +83,9 @@ export const handler: Handler = async (event) => {
       }))
       .sort((a, b) => a.distanceMeters - b.distanceMeters);
 
-    // DEBUG: show raw sorted position of stops in the 330–400m band
-    console.log("[stops] 330-400m band:", allWithDistance.filter(s => s.distanceMeters >= 330 && s.distanceMeters <= 400).map(s => `${s.id} ${s.name} ${Math.round(s.distanceMeters)}m`));
-
-    // Walk stops closest-first; allow at most 2 per 100m proximity cluster so a
-    // single dense intersection can't consume all candidate slots.
-    const nearby: typeof allWithDistance = [];
-    for (const stop of allWithDistance) {
-      if (stop.distanceMeters > radiusM) break;
-      const nearbyCount = nearby.filter(
-        (r) => haversineMeters(r.lat, r.lng, stop.lat, stop.lng) < 100
-      ).length;
-      if (nearbyCount < 2) nearby.push(stop);
-      if (nearby.length >= 15) break;
-    }
+    const nearby = allWithDistance
+      .filter((s) => s.distanceMeters <= radiusM)
+      .slice(0, 20);
 
     return {
       statusCode: 200,

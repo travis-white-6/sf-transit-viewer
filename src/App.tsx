@@ -19,7 +19,7 @@ function RateLimitBanner({ until }: { until: number }) {
 
   return (
     <div className="rate-limit-banner">
-      Rate limited by 511.org — retrying in {mins}:{secs}
+      ⚠️ Rate limited by 511.org — retrying in {mins}:{secs}
     </div>
   );
 }

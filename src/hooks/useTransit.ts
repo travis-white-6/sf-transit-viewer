@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Stop, StopWithArrivals } from "../types/transit";
 
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 120_000;
 const RATE_LIMIT_BLOCK_MS = 2 * 60 * 1000;
 const STOPS_CACHE_TTL_MS = 60 * 60 * 1000;
 const STOPS_CACHE_MOVE_THRESHOLD_M = 200;
@@ -91,26 +91,37 @@ export function useTransit(lat: number | null, lng: number | null) {
     try {
       const nearbyStops = await fetchStops(lat, lng);
 
-      const withArrivals: StopWithArrivals[] = [];
-      for (const stop of nearbyStops as (Stop & { distanceMeters: number })[]) {
-        try {
-          const arrRes = await fetch(
-            `/api/arrivals?agency=${stop.agency}&stopCode=${encodeURIComponent(stop.id)}`
-          );
-          if (arrRes.status === 502) {
-            const body = await arrRes.json().catch(() => ({})) as { error?: string };
-            if (String(body.error ?? "").includes("429")) {
-              triggerRateLimit();
-              break;
-            }
-          }
-          const arrivals = arrRes.ok ? await arrRes.json() : [];
-          withArrivals.push({ ...stop, arrivals, fetchedAt: Date.now() });
-        } catch {
-          withArrivals.push({ ...stop, arrivals: [], fetchedAt: Date.now() });
+      const typedStops = nearbyStops as (Stop & { distanceMeters: number })[];
+
+      // Group stop IDs by agency for the bulk arrivals call
+      const sfIds = typedStops.filter((s) => s.agency === "SF").map((s) => s.id);
+      const baIds = typedStops.filter((s) => s.agency === "BA").map((s) => s.id);
+
+      const params = new URLSearchParams({
+        sfStops: sfIds.join(","),
+        baStops: baIds.join(","),
+      });
+
+      let arrivalsByStop: Record<string, { line: string; destination: string; expectedTime: string | null; aimedTime: string; isLive: boolean }[]> = {};
+
+      const bulkRes = await fetch(`/api/arrivals-bulk?${params}`);
+      if (bulkRes.status === 429 || bulkRes.status === 502) {
+        const body = await bulkRes.json().catch(() => ({})) as { error?: string };
+        if (bulkRes.status === 429 || String(body.error ?? "").includes("429")) {
+          triggerRateLimit();
+          return;
         }
-        await new Promise((r) => setTimeout(r, 200));
       }
+      if (bulkRes.ok) {
+        arrivalsByStop = await bulkRes.json();
+      }
+
+      const fetchedAt = Date.now();
+      const withArrivals: StopWithArrivals[] = typedStops.map((stop) => ({
+        ...stop,
+        arrivals: arrivalsByStop[stop.id] ?? [],
+        fetchedAt,
+      }));
 
       if (withArrivals.length > 0) setStops(deduplicateStops(withArrivals));
     } catch (err) {

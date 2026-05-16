@@ -8,10 +8,12 @@ const PORT = 9999;
 
 const { handler: stopsHandler } = await import("./netlify/functions/stops.ts");
 const { handler: arrivalsHandler } = await import("./netlify/functions/arrivals.ts");
+const { handler: arrivalsBulkHandler } = await import("./netlify/functions/arrivals-bulk.ts");
 
 const routes: Record<string, Function> = {
   "/stops": stopsHandler,
   "/arrivals": arrivalsHandler,
+  "/arrivals-bulk": arrivalsBulkHandler,
 };
 
 function toNetlifyEvent(req: IncomingMessage, url: URL) {
